@@ -352,6 +352,8 @@ const Voice = (()=>{
   if(synth){ chooseVoice(); synth.onvoiceschanged=chooseVoice; }
   function clean(t){
     return String(t)
+      .replace(/×/g,' times ').replace(/÷/g,' divided by ')
+      .replace(/½/g,' one half ').replace(/⅓/g,' one third ').replace(/¼/g,' one quarter ').replace(/⅕/g,' one fifth ')
       .replace(/[−–—-]/g,' minus ').replace(/\+/g,' plus ')
       .replace(/=/g,' equals ').replace(/\?/g,' what?')
       .replace(/[^\w\s.,!?']/g,' ')      // strip emoji/symbols
@@ -454,7 +456,7 @@ function opts(correct, near, count=4){
 
 function genAddSub(){
   const lvl=L();
-  const max = lvl<=1?10 : lvl<=2?15 : lvl<=3?20 : lvl<=4?30 : 50;
+  const max = lvl<=1?10 : lvl<=2?15 : lvl<=3?20 : lvl<=4?50 : lvl<=5?100 : 999;  // Year 3 = 3-digit
   const sub = Math.random()<0.5;
   let a,b,ans,text;
   if(sub){ a=rnd(2,max); b=rnd(1,a); ans=a-b; text=`${a} − ${b} = ?`; }
@@ -473,7 +475,11 @@ function genBonds(){
 }
 
 function genCount(){
-  const step=pick(L()<=2?[2,5,10]:[2,3,5,10]);
+  const lvl=L();
+  let steps=[2,5,10];
+  if(lvl>=3) steps=[2,3,4,5,10];
+  if(lvl>=5) steps=[4,8,50,100,3];   // Year 3 steps
+  const step=pick(steps);
   const start=step*rnd(0,4);
   const seq=[start,start+step,start+step*2,start+step*3];
   const missIdx=rnd(1,3);
@@ -525,9 +531,37 @@ function genShape(){
   }
 }
 
-const GENERATORS=[genAddSub,genAddSub,genBonds,genCount,genMoreLess,genCompare,genShape];
+// Year 3: times tables & division
+function genMulDiv(){
+  const lvl=L();
+  const tables = lvl>=5 ? [2,3,4,5,8,10] : [2,5,10];   // Year 3 adds 3, 4, 8
+  const a=pick(tables), b=rnd(2,12);
+  if(Math.random()<0.4){
+    const prod=a*b, ans=b;
+    const near=[b+1,b-1,b+2,a,b+3].filter(n=>n>=0);
+    return {prompt:"Division ➗", q:`${prod} ÷ ${a} = ?`, answers:opts(ans,near), correct:ans, skill:"muldiv"};
+  }
+  const ans=a*b;
+  const near=[ans+a,ans-a,ans+1,ans-1,a*(b+1),a*(b-1)].filter(n=>n>=0);
+  return {prompt:"Times tables ✖️", q:`${a} × ${b} = ?`, answers:opts(ans,near), correct:ans, skill:"muldiv"};
+}
+// Year 3: fractions of an amount
+function genFraction(){
+  const fr=pick([[2,"½"],[3,"⅓"],[4,"¼"],[5,"⅕"]]);
+  const denom=fr[0], mult=rnd(1,6), total=denom*mult, ans=mult;
+  const near=[ans+1,ans-1,ans+2,total,denom].filter(n=>n>=0);
+  return {prompt:"Fractions of an amount 🍕", q:`${fr[1]} of ${total} = ?`, answers:opts(ans,near), correct:ans, skill:"fraction"};
+}
+
+function pickGenerator(){
+  const lvl=L();
+  const pool=[genAddSub,genAddSub,genBonds,genCount,genMoreLess,genCompare,genShape];
+  if(lvl>=4) pool.push(genMulDiv,genMulDiv);                        // multiplication enters
+  if(lvl>=5) pool.push(genMulDiv,genFraction,genFraction,genAddSub); // Year 3 emphasis
+  return pick(pool);
+}
 function nextQuestion(){
-  const g=pick(GENERATORS)();
+  const g=pickGenerator()();
   if(g.skill==="compare" && g.forceOptions){ g.answers=shuffle([...new Set(g.forceOptions)]).slice(0,4);
     if(!g.answers.includes(g.correct)) g.answers[0]=g.correct; g.answers=shuffle(g.answers); }
   return g;
@@ -564,7 +598,7 @@ function updateHUD(){
   updateDiffUI();
 }
 
-const DIFF_NAMES=["","Easy","Easy+","Medium","Medium+","Hard","Expert"];
+const DIFF_NAMES=["","Year 1","Year 1+","Year 2","Year 2+","Year 3","Year 3 ★"];  // Year 3 ★ = Expert
 function updateDiffUI(){
   const el=$('diffLabel'); if(!el) return;
   el.textContent = S.manual ? DIFF_NAMES[L()] : "Auto";
@@ -707,9 +741,10 @@ function renderCollection(){
 
 /* ---------- parent view ---------- */
 const SKILL_NAMES={addsub:"➕ Add & subtract", bonds:"🔗 Number bonds", count:"🔢 Counting in steps",
-  moreless:"🛰️ More / less", compare:"🪐 Comparing numbers", shape:"📐 Shapes"};
+  moreless:"🛰️ More / less", compare:"🪐 Comparing numbers", shape:"📐 Shapes",
+  muldiv:"✖️ Times tables & ÷", fraction:"🍕 Fractions"};
 function renderParent(){
-  const order=["addsub","bonds","count","moreless","compare","shape"];
+  const order=["addsub","bonds","count","moreless","compare","shape","muldiv","fraction"];
   const grid=$('parentGrid'); grid.innerHTML="";
   let totC=0, totT=0, weakest=null;
   order.forEach(sk=>{
