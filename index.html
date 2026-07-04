@@ -39,6 +39,19 @@
   body.scene5{background:radial-gradient(800px 550px at 50% -10%, rgba(255,210,80,.30) 0%, transparent 60%),
               radial-gradient(900px 600px at 85% 110%, rgba(255,180,60,.18) 0%, transparent 55%),
               linear-gradient(160deg,#1c1403,#4a3a10);}
+  body.scene6{background:radial-gradient(800px 550px at 70% -5%, rgba(150,200,255,.30) 0%, transparent 60%),
+              radial-gradient(900px 600px at 15% 110%, rgba(190,140,255,.22) 0%, transparent 55%),
+              linear-gradient(160deg,#131b33,#3a2f6b);}
+  body.scene7{background:radial-gradient(800px 550px at 75% -5%, rgba(255,150,60,.35) 0%, transparent 60%),
+              radial-gradient(900px 600px at 10% 110%, rgba(255,90,60,.22) 0%, transparent 55%),
+              linear-gradient(160deg,#1c0f05,#5a2a10);}
+  body.scene8{background:radial-gradient(800px 550px at 70% -5%, rgba(120,140,255,.30) 0%, transparent 60%),
+              radial-gradient(900px 600px at 15% 110%, rgba(255,100,200,.18) 0%, transparent 55%),
+              linear-gradient(160deg,#060a1c,#1c2a5a);}
+  body.scene9{background:radial-gradient(800px 550px at 50% -10%, rgba(255,210,80,.28) 0%, transparent 60%),
+              radial-gradient(900px 600px at 80% 110%, rgba(190,100,255,.28) 0%, transparent 55%),
+              radial-gradient(700px 500px at 15% 100%, rgba(56,225,255,.18) 0%, transparent 55%),
+              linear-gradient(160deg,#150b2b,#3a1a5a);}
   #sceneDecor{position:fixed; inset:0; z-index:1; pointer-events:none;}
   .decorItem{position:absolute; opacity:.16; animation:drift 5s ease-in-out infinite alternate;}
   #stars{position:fixed; inset:0; z-index:0; pointer-events:none;}
@@ -303,6 +316,13 @@
             <stop offset="70%" stop-color="#ffd23f" stop-opacity=".15"/>
             <stop offset="100%" stop-color="#ffd23f" stop-opacity="0"/>
           </radialGradient>
+          <linearGradient id="rainbowGrad" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%"  stop-color="#ff5db1"/>
+            <stop offset="25%" stop-color="#ffd23f"/>
+            <stop offset="50%" stop-color="#7cff6b"/>
+            <stop offset="75%" stop-color="#38e1ff"/>
+            <stop offset="100%" stop-color="#a56bff"/>
+          </linearGradient>
         </defs>
         <!-- Grand Master aura (behind everything) -->
         <circle id="gearAura" cx="110" cy="112" r="100" fill="url(#auraGrad)" style="display:none"/>
@@ -354,6 +374,10 @@
         <circle id="gearBraidTie" style="display:none" cx="146" cy="118" r="3.4" fill="#ffd23f"/>
         <!-- Apprentice headband -->
         <path id="gearBand" style="display:none" d="M79 53 Q110 43 141 53" stroke="#a56bff" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <!-- Jedi Legend halo -->
+        <ellipse id="gearHalo" style="display:none" cx="110" cy="26" rx="30" ry="8" fill="none" stroke="#ffd23f" stroke-width="4" opacity=".9"/>
+        <!-- Force Guardian star crest -->
+        <path id="gearCrest" style="display:none" d="M110 126 l3.5 7.5 8 1 -5.8 5.7 1.4 8 -7.1 -3.8 -7.1 3.8 1.4 -8 -5.8 -5.7 8 -1Z" fill="#ffd23f" stroke="#fff" stroke-width="1"/>
       </svg>
       <div id="rafaName">Padawan Rafa</div>
     </div>
@@ -511,15 +535,22 @@ const STREAK_LINES={
 })();
 
 /* ---------- state & persistence ---------- */
-const RANKS=["Youngling","Padawan","Apprentice","Knight","Master","Grand Master"];
+const RANKS=["Youngling","Padawan","Apprentice","Knight","Master","Grand Master",
+             "Jedi Sage","Jedi Legend","Force Guardian","Master of the Galaxy"];
+const GM_RANK=5; // Grand Master — the gateway to the legendary tier
 const DROIDS=["🤖","🛸","📡","🔭","🛰️","👾"];
 const BLADES=[{e:"🗡️",c:"Blue Lightsaber"},{e:"⚔️",c:"Twin Lightsabers"},{e:"🔦",c:"Green Lightsaber"},{e:"✨",c:"Purple Lightsaber"}];
 const POWERS=["🛡️ Force Shield","⚡ Force Speed","🌟 Force Push","🔥 Battle Streak","❄️ Force Freeze","💫 Force Leap"];
+/* Legend Powers — only earnable once you are a Grand Master */
+const LEGEND_POWERS=["🌈 Rainbow Saber","🦅 Force Flight","🌀 Force Storm","🔮 Force Vision",
+                     "⏳ Time Slow","🌠 Star Command","🐲 Krayt Companion","🕊️ Force Spirit"];
 const ALL_COLLECT=[
   ...DROIDS.map(e=>({e,label:"Droid"})),
   ...BLADES.map(b=>({e:b.e,label:b.c})),
-  ...POWERS.map(p=>({e:p.split(' ')[0],label:p.split(' ').slice(1).join(' ')}))
+  ...POWERS.map(p=>({e:p.split(' ')[0],label:p.split(' ').slice(1).join(' ')})),
+  ...LEGEND_POWERS.map(p=>({e:p.split(' ')[0],label:p.split(' ').slice(1).join(' '),legend:true}))
 ];
+const BASE_COUNT=ALL_COLLECT.filter(x=>!x.legend).length;
 
 /* Training grounds — the scene changes as the Jedi rises in rank */
 const SCENES=[
@@ -528,7 +559,11 @@ const SCENES=[
   {name:"Dagobah Swamp",     cls:"scene2", decor:[["🌿","4%","70%","64px"],["🐸","82%","80%","44px"],["🌫️","76%","10%","56px"]]},
   {name:"Hoth Ice Fields",   cls:"scene3", decor:[["🏔️","4%","70%","70px"],["❄️","82%","10%","44px"],["⛄","80%","78%","48px"]]},
   {name:"Cloud City",        cls:"scene4", decor:[["☁️","5%","12%","60px"],["🌇","80%","74%","60px"],["🛸","76%","10%","44px"]]},
-  {name:"Jedi Temple",       cls:"scene5", decor:[["🏛️","5%","72%","70px"],["✨","82%","10%","46px"],["🌟","78%","78%","46px"]]}
+  {name:"Jedi Temple",       cls:"scene5", decor:[["🏛️","5%","72%","70px"],["✨","82%","10%","46px"],["🌟","78%","78%","46px"]]},
+  {name:"Ilum Crystal Caves",cls:"scene6", decor:[["💎","5%","72%","64px"],["❄️","82%","10%","44px"],["✨","78%","78%","46px"]]},
+  {name:"Star Forge",        cls:"scene7", decor:[["⚙️","5%","72%","62px"],["🔥","82%","78%","48px"],["🌟","80%","10%","46px"]]},
+  {name:"Nebula's Edge",     cls:"scene8", decor:[["🌌","5%","10%","64px"],["🪐","80%","74%","58px"],["💫","78%","12%","44px"]]},
+  {name:"Heart of the Galaxy",cls:"scene9",decor:[["🌌","5%","70%","70px"],["🌠","80%","10%","50px"],["🌟","78%","78%","48px"]]}
 ];
 
 /* Robe colours evolve with rank */
@@ -538,7 +573,11 @@ const ROBES=[
   {a:"#a9b8cf",b:"#9dadc7",c:"#8b9cba",d:"#71829f",belt:"#46536b"},  // Apprentice — steel blue + headband
   {a:"#6e5a43",b:"#64513c",c:"#544433",d:"#463928",belt:"#2e2519"},  // Knight — dark robes + hood
   {a:"#f0e7d2",b:"#e9dec4",c:"#dccfae",d:"#c8b88f",belt:"#8a6d3b"},  // Master — cream + cape
-  {a:"#fff3d6",b:"#ffe9b8",c:"#f7d98c",d:"#e7c063",belt:"#b8860b"}   // Grand Master — gold + aura
+  {a:"#fff3d6",b:"#ffe9b8",c:"#f7d98c",d:"#e7c063",belt:"#b8860b"},  // Grand Master — gold + aura
+  {a:"#eef6ff",b:"#e2eefc",c:"#cfe0f4",d:"#b3c9e6",belt:"#5b7ea8"},  // Jedi Sage — crystal white-blue
+  {a:"#ffffff",b:"#f7f3e8",c:"#eadfc3",d:"#d8c48f",belt:"#b8860b"},  // Jedi Legend — radiant white-gold + halo
+  {a:"#3d4a75",b:"#36426a",c:"#2c3659",d:"#232c49",belt:"#8fb7ff"},  // Force Guardian — deep-space blue + star crest
+  {a:"#2a1a4a",b:"#241542",c:"#1c1036",d:"#150b2b",belt:"#ffd23f"}   // Master of the Galaxy — cosmic purple, gold belt
 ];
 
 /* Little learning tips, shown when an answer is missed */
@@ -753,21 +792,36 @@ function nextQuestion(){
 let current=null, locked=false, inGame=false, sinceBreak=0, missStreakBySkill={};
 function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); }
 
-const RANK_COLORS=["#38e1ff","#38e1ff","#7cff6b","#7cff6b","#a56bff","#ff5db1"]; // blue→green→purple→rose
+const RANK_COLORS=["#38e1ff","#38e1ff","#7cff6b","#7cff6b","#a56bff","#ff5db1",
+                   "#f4faff","#ffd23f","#ff8c42","RAINBOW"]; // blue→green→purple→rose→white→gold→orange→rainbow
 function rankIndex(){ return Math.min(RANKS.length-1, Math.floor(S.correctTotal/10)); }
+/* After the final rank, every 10 correct earns another Galaxy Star — forever */
+function galaxyStars(){
+  const top=RANKS.length-1;
+  return Math.max(0, Math.floor(S.correctTotal/10) - top);
+}
+function rankLabel(){
+  const st=galaxyStars();
+  return RANKS[rankIndex()] + (st>0 ? " ⭐"+st : "");
+}
 
 function updateSaber(){
   const ri=rankIndex();
   const outer=$('bladeOuter'), inner=$('bladeInner'); if(!outer) return;
-  const len = 96 + ri*24;          // grows from 96 up to ~216
-  const bottom = 74;               // stays anchored at the hilt top
+  const len = 96 + Math.min(ri,5)*24;   // grows until Grand Master, then changes colour instead
+  const bottom = 74;                    // stays anchored at the hilt top
   const top = bottom - len;
   outer.setAttribute('y', top);   outer.setAttribute('height', len);
   inner.setAttribute('y', top+2); inner.setAttribute('height', Math.max(0,len-4));
   const col=RANK_COLORS[ri];
-  outer.setAttribute('fill', col);
-  const blur=6+ri*3, blur2=12+ri*6;   // brighter glow at higher ranks
-  outer.style.filter=`drop-shadow(0 0 ${blur}px ${col}) drop-shadow(0 0 ${blur2}px ${col})`;
+  if(col==="RAINBOW"){
+    outer.setAttribute('fill','url(#rainbowGrad)');
+    outer.style.filter=`drop-shadow(0 0 12px #fff) drop-shadow(0 0 26px #ff5db1) drop-shadow(0 0 40px #38e1ff)`;
+  } else {
+    outer.setAttribute('fill', col);
+    const blur=6+Math.min(ri,5)*3, blur2=12+Math.min(ri,5)*6;
+    outer.style.filter=`drop-shadow(0 0 ${blur}px ${col}) drop-shadow(0 0 ${blur2}px ${col})`;
+  }
 }
 
 /* The Jedi grows up: robes, braid, headband, hood, cape, golden aura */
@@ -781,10 +835,12 @@ function updateJedi(){
   const showIf=(id,cond)=>{ const el=$(id); if(el) el.style.display=cond?'':'none'; };
   showIf('gearBraid',   ri>=1 && ri<3);
   showIf('gearBraidTie',ri>=1 && ri<3);
-  showIf('gearBand',    ri>=2);
-  showIf('gearHood',    ri>=3);
+  showIf('gearBand',    ri>=2 && ri<6);
+  showIf('gearHood',    ri>=3 && ri<6);
   showIf('gearCape',    ri>=4);
   showIf('gearAura',    ri>=5);
+  showIf('gearHalo',    ri>=7);
+  showIf('gearCrest',   ri>=8);
 }
 
 /* Scenes change with rank */
@@ -814,7 +870,7 @@ function renderBelt(){
     label.textContent='🎒 Gear: answer questions to earn droids, sabers & powers!';
     row.appendChild(label);
   } else {
-    label.textContent=`🎒 ${S.unlocked.length}/${ALL_COLLECT.length}:`;
+    label.textContent=`🎒 ${S.unlocked.length}/${rankIndex()>=GM_RANK?ALL_COLLECT.length:BASE_COUNT}:`;
     row.appendChild(label);
     S.unlocked.forEach(i=>{
       const it=ALL_COLLECT[i]; if(!it) return;
@@ -829,7 +885,7 @@ function updateHUD(){
   $('scoreN').textContent=S.score;
   $('streakN').textContent=S.streak;
   $('powerFill').style.width=Math.min(100,S.power)+'%';
-  $('rankChip').textContent=RANKS[rankIndex()];
+  $('rankChip').textContent=rankLabel();
   updateSaber();
   updateJedi();
   applyScene();
@@ -852,14 +908,15 @@ function setDiff(delta){
 
 function updateRankProg(){
   const label=$('rankProgLabel'), fill=$('rankProgFill'); if(!label) return;
-  const ri=rankIndex(), within=S.correctTotal%10;
-  if(ri>=RANKS.length-1){
-    label.textContent="✨ Grand Master — the highest rank reached!";
-    fill.style.width="100%"; return;
-  }
-  const remaining=10-within;
+  const ri=rankIndex(), within=S.correctTotal%10, remaining=10-within;
   fill.style.width=(within*10)+"%";
-  label.textContent=`⭐ ${remaining} more correct to reach ${RANKS[ri+1]} (new look + new training ground!)`;
+  if(ri>=RANKS.length-1){
+    const st=galaxyStars();
+    label.textContent=`🌌 ${RANKS[ri]}${st>0?" ⭐"+st:""} — ${remaining} more correct for another Galaxy Star!`;
+    return;
+  }
+  const gateway = (ri+1===GM_RANK+1) ? " + Legend Powers unlock!" : "";
+  label.textContent=`⭐ ${remaining} more correct to reach ${RANKS[ri+1]} (new look + new training ground!${gateway})`;
 }
 
 function startGame(){
@@ -907,8 +964,14 @@ function answer(btn, val){
     burstConfetti(S.streak===5||S.streak===10?30:14);
     save(); updateHUD();
     const rankedUp = rankIndex()>prevRank;
+    const newStar = !rankedUp && rankIndex()>=RANKS.length-1 && S.correctTotal%10===0;
     if(rankedUp){
-      Voice.speak("Hmmm! Ready, you are. "+RANKS[rankIndex()]+", you become! Grown, your lightsaber has. To the "+SCENES[rankIndex()].name+", we travel now.");
+      const gateway = rankIndex()===GM_RANK+1 ? " Beyond Grand Master, few Jedi go. Legendary, you now are." : "";
+      Voice.speak("Hmmm! Ready, you are. "+RANKS[rankIndex()]+", you become!"+gateway+" To the "+SCENES[rankIndex()].name+", we travel now.");
+      burstConfetti(30);
+    } else if(newStar){
+      Voice.speak("Another Galaxy Star, you earn! "+galaxyStars()+" stars, shine on you now. Endless, your legend is.");
+      burstConfetti(40);
     } else if(STREAK_LINES[S.streak]){
       Voice.speak(STREAK_LINES[S.streak]);
     } else {
@@ -995,20 +1058,29 @@ function maybeReward(){
   const shouldUnlock = S.power>=100 || (S.correctTotal>0 && S.correctTotal%5===0);
   if(!shouldUnlock) return;
   S.power=0;
-  const locked=ALL_COLLECT.map((_,i)=>i).filter(i=>!S.unlocked.includes(i));
+  // Legend Powers only become winnable once you are a Grand Master
+  const canLegend = rankIndex()>=GM_RANK;
+  const locked=ALL_COLLECT.map((_,i)=>i)
+    .filter(i=>!S.unlocked.includes(i))
+    .filter(i=>canLegend || !ALL_COLLECT[i].legend);
   if(locked.length===0) return; // all collected
-  const idx=pick(locked); S.unlocked.push(idx);
+  // once a Grand Master, finish the base set first, then the legends
+  const baseLeft=locked.filter(i=>!ALL_COLLECT[i].legend);
+  const idx=pick(baseLeft.length? baseLeft : locked); S.unlocked.push(idx);
   const item=ALL_COLLECT[idx];
   save();
   Sound.reward();
   $('rewardEmoji').textContent=item.e;
   const isBlade=item.label.includes("Lightsaber");
-  $('rewardTitle').textContent = item.label==="Droid"?"New Droid unlocked!" : isBlade?"New "+item.label+"!" : "New Power: "+item.label+"!";
-  $('rewardText').textContent = item.label==="Droid"?"A loyal droid joins your crew.":
+  $('rewardTitle').textContent = item.legend?"🌟 LEGEND Power: "+item.label+"!" :
+     item.label==="Droid"?"New Droid unlocked!" : isBlade?"New "+item.label+"!" : "New Power: "+item.label+"!";
+  $('rewardText').textContent = item.legend?"A power known only to the greatest Jedi in history. "+item.e:
+     item.label==="Droid"?"A loyal droid joins your crew.":
      isBlade?"Ignite it! "+item.e+"  Your training grows stronger.":
      "The Force grows in you! "+item.e;
   if(isBlade) Sound.laser();
-  Voice.speak("Unlocked "+item.label+", you have. Treasure it, you will. Hmmm.");
+  Voice.speak(item.legend? "Hmmm! A Legend Power, this is. "+item.label+", now yours it becomes. Few Jedi, this honour know."
+                         : "Unlocked "+item.label+", you have. Treasure it, you will. Hmmm.");
   $('reward').classList.add('show');
   burstConfetti(40);
 }
@@ -1030,14 +1102,22 @@ function burstConfetti(n){
 /* ---------- collection screen ---------- */
 function renderCollection(){
   const grid=$('collectGrid'); grid.innerHTML="";
+  const gm=rankIndex()>=GM_RANK;
   ALL_COLLECT.forEach((item,i)=>{
-    const d=document.createElement('div');
     const has=S.unlocked.includes(i);
+    if(item.legend && i===BASE_COUNT){
+      const h=document.createElement('div');
+      h.style.cssText="grid-column:1/-1;font-weight:800;color:var(--gold);font-size:15px;margin-top:6px";
+      h.textContent = gm ? "🌟 Legend Powers — for Grand Masters and beyond" : "🌟 Legend Powers — reach Grand Master to unlock these";
+      grid.appendChild(h);
+    }
+    const d=document.createElement('div');
     d.className='slot'+(has?'':' locked');
-    d.innerHTML=`${has?item.e:"❔"}<small>${has?item.label:"locked"}</small>`;
+    if(item.legend) d.style.borderColor='rgba(255,210,63,.5)';
+    d.innerHTML=`${has?item.e:(item.legend&&!gm?"🔒":"❔")}<small>${has?item.label:(item.legend&&!gm?"Grand Master+":"locked")}</small>`;
     grid.appendChild(d);
   });
-  $('collectSummary').innerHTML=`Collected <b>${S.unlocked.length}</b> of ${ALL_COLLECT.length} • Best streak 🔥 <b>${S.best}</b> • Rank: <b>${RANKS[Math.min(RANKS.length-1,Math.floor(S.correctTotal/10))]}</b>`;
+  $('collectSummary').innerHTML=`Collected <b>${S.unlocked.length}</b> of ${ALL_COLLECT.length} • Best streak 🔥 <b>${S.best}</b> • Rank: <b>${rankLabel()}</b>`;
   show('collectScreen');
 }
 
@@ -1065,7 +1145,7 @@ function renderParent(){
   });
   const overall=totT? Math.round(totC/totT*100):0;
   const who=S.name||'This player';
-  $('parentSummary').innerHTML=`${S.emoji||''} <b>${who}</b> · Answered <b>${totT}</b> questions · <b>${overall}%</b> correct · Best streak 🔥 <b>${S.best}</b> · Rank <b>${RANKS[rankIndex()]}</b>`;
+  $('parentSummary').innerHTML=`${S.emoji||''} <b>${who}</b> · Answered <b>${totT}</b> questions · <b>${overall}%</b> correct · Best streak 🔥 <b>${S.best}</b> · Rank <b>${rankLabel()}</b>`;
   $('parentFocus').textContent = weakest ? `💡 Focus area: ${SKILL_NAMES[weakest.sk]} (${weakest.pct}%). Try setting difficulty to a fixed level and practising this.`
       : `Play a few rounds to see where ${who} is strongest and where to focus.`;
   show('parentScreen');
