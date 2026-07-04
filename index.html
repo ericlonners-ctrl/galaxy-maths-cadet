@@ -139,6 +139,27 @@
   #rewardTitle{font-size:clamp(26px,7vw,44px); font-weight:800; color:var(--gold); margin-top:8px;}
   #rewardText{font-size:clamp(16px,4vw,22px); color:#cfe8ff; margin:6px 0 16px; max-width:80vw;}
 
+  /* level-up overlay */
+  #levelUp{position:fixed; inset:0; z-index:21; display:none; flex-direction:column; align-items:center; justify-content:center;
+     text-align:center; padding:20px;
+     background:radial-gradient(circle at 50% 40%, rgba(70,35,110,.9), rgba(6,8,24,.96));}
+  #levelUp.show{display:flex; animation:fade .3s;}
+  #lvlEmoji{font-size:clamp(80px,26vw,180px); animation:spinpop .8s ease;}
+  #lvlTitle{font-size:clamp(28px,8vw,52px); font-weight:800; letter-spacing:1px; margin-top:6px;
+     background:linear-gradient(90deg,var(--gold),var(--pink),var(--neon));
+     -webkit-background-clip:text; background-clip:text; color:transparent;}
+  #lvlText{font-size:clamp(16px,4.2vw,23px); color:#cfe8ff; margin:8px 0 16px; max-width:min(540px,84vw); line-height:1.45;}
+
+  /* collection level badges */
+  #levelRow{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin:2px 0 10px; max-width:94vw;}
+  .lvlBadge{position:relative; width:52px; height:52px; border-radius:14px; font-size:22px; cursor:pointer;
+     background:var(--panel); border:2px solid var(--panelb); color:#fff; line-height:1;}
+  .lvlBadge small{position:absolute; bottom:2px; right:5px; font-size:10px; font-weight:800; color:#bfe3ff;}
+  .lvlBadge.done{border-color:rgba(124,255,107,.55);}
+  .lvlBadge.cur{border-color:var(--gold);}
+  .lvlBadge.lock{opacity:.4; cursor:default;}
+  .lvlBadge.sel{background:rgba(56,225,255,.18); border-color:var(--neon);}
+
   /* take-a-break overlay */
   #breakScreen{position:fixed; inset:0; z-index:22; display:none; flex-direction:column; align-items:center; justify-content:center;
      text-align:center; padding:20px;
@@ -397,7 +418,8 @@
   <!-- COLLECTION -->
   <div class="screen" id="collectScreen">
     <h1 style="font-size:clamp(28px,7vw,52px)">🏆 My Collection</h1>
-    <div class="tag" id="collectSummary"></div>
+    <div id="levelRow"></div>
+    <div class="tag" id="collectSummary" style="margin-bottom:6px"></div>
     <div id="collectGrid"></div>
     <button class="btn blue" id="backBtn">← Back</button>
   </div>
@@ -408,6 +430,14 @@
   <div id="rewardTitle">New Droid!</div>
   <div id="rewardText"></div>
   <button class="btn" id="rewardBtn">Awesome! Keep going →</button>
+</div>
+
+<!-- LEVEL UP -->
+<div id="levelUp">
+  <div id="lvlEmoji">🪐</div>
+  <div id="lvlTitle">LEVEL 2 UNLOCKED!</div>
+  <div id="lvlText"></div>
+  <button class="btn" id="lvlBtn">✦ Start Level 2</button>
 </div>
 
 <!-- TAKE A BREAK -->
@@ -552,6 +582,36 @@ const ALL_COLLECT=[
 ];
 const BASE_COUNT=ALL_COLLECT.filter(x=>!x.legend).length;
 
+/* ---------- COLLECTION LEVELS ----------
+   Finish an entire collection and a new LEVEL begins, with a brand
+   new type of object to hunt for. 10 levels in all. */
+const mkItems=a=>a.map(s=>({e:s.split(' ')[0], label:s.split(' ').slice(1).join(' ')}));
+const LEVELS=[
+  {name:"Jedi Training",     icon:"⚔️", blurb:"Droids, lightsabers and Jedi powers", items:ALL_COLLECT},
+  {name:"Planet Builder",    icon:"🪐", blurb:"Collect the parts and build your own planet", items:mkItems(
+    ["🪨 Rocky Core","🌋 Volcano","🏔️ Mountains","🌊 Ocean","🏜️ Desert","🌴 Jungle","☁️ Atmosphere","❄️ Ice Caps","💍 Planet Rings","🌙 Moon"])},
+  {name:"Starship Fleet",    icon:"🚀", blurb:"Build a mighty starship, piece by piece", items:mkItems(
+    ["⚙️ Engine","🔋 Power Cell","📡 Radar Dish","🪟 Cockpit","🛡️ Deflector Shields","🔥 Boosters","🛰️ Scout Probe","🕹️ Controls","🚀 Rocket Wing","🏁 Star Racer"])},
+  {name:"Alien Friends",     icon:"👽", blurb:"Meet friendly creatures from far-off worlds", items:mkItems(
+    ["👽 Alien Buddy","🐙 Octopod","🦎 Lizardling","🐸 Swamp Hopper","🦋 Star Butterfly","🐢 Cosmo Turtle","🦉 Moon Owl","👾 Pixel Pal","🦑 Void Squid","🐉 Space Dragon"])},
+  {name:"Space Gems",        icon:"💎", blurb:"Mine sparkling crystals from asteroid caves", items:mkItems(
+    ["💎 Diamond","🔷 Sapphire","🔶 Amber","💚 Emerald","❤️ Ruby","💜 Amethyst","🤍 Pearl","💛 Topaz","🖤 Obsidian","🌈 Prism Stone"])},
+  {name:"Galactic Crew",     icon:"🧑‍🚀", blurb:"Recruit a crew for your starship", items:mkItems(
+    ["🧑‍✈️ Pilot","🧑‍🔧 Engineer","🧑‍🚀 Astronaut","🧑‍⚕️ Medic","🧑‍🍳 Chef","🧭 Navigator","🕵️ Scout","🧙 Sage","🤖 Droid Buddy","🎖️ Captain"])},
+  {name:"Space Cantina",     icon:"🍕", blurb:"Cook up the galaxy's most famous snacks", items:mkItems(
+    ["🍕 Star Pizza","🧁 Moon Cake","🍦 Comet Cream","🍪 Asteroid Cookie","🥤 Nebula Fizz","🍜 Galaxy Noodles","🍩 Ring Donut","🍉 Melon Slice","🍓 Berry Blast","🎂 Victory Cake"])},
+  {name:"Star Collector",    icon:"⭐", blurb:"Catch every kind of star in the sky", items:mkItems(
+    ["⭐ Yellow Star","🔵 Blue Giant","🔴 Red Dwarf","🟠 Orange Star","💫 Shooting Star","🌟 Super Star","✨ Star Cluster","☀️ Golden Sun","🌠 Comet","🕳️ Black Hole"])},
+  {name:"Galactic Wonders",  icon:"🌌", blurb:"Discover the strangest things in space", items:mkItems(
+    ["🌌 Nebula","🌀 Spiral Galaxy","💥 Supernova","🕳️ Wormhole","🧲 Magnetar","❄️ Ice Comet","🔥 Solar Flare","🪐 Gas Giant","🌈 Space Aurora","⚡ Pulsar"])},
+  {name:"Republic Treasures",icon:"🏆", blurb:"The lost treasures of the Old Republic", items:mkItems(
+    ["👑 Crown","🗝️ Ancient Key","📜 Jedi Scroll","🏺 Old Relic","🧿 Force Amulet","⚱️ Holocron","🔱 Trident","🛕 Temple Idol","💠 Kyber Crystal","🏆 Golden Trophy"])}
+];
+const curLevelIdx=()=>Math.min(S.clevel||0, LEVELS.length-1);
+const curLevel=()=>LEVELS[curLevelIdx()];
+const curItems=()=>curLevel().items;
+let viewLevel=null; // which level the collection screen is showing
+
 /* Training grounds — the scene changes as the Jedi rises in rank */
 const SCENES=[
   {name:"Coruscant Academy", cls:"scene0", decor:[["🏙️","6%","72%","64px"],["🛰️","82%","10%","46px"],["🌃","78%","78%","54px"]]},
@@ -602,7 +662,7 @@ const YODA_TIPS={
   fraction:"Into equal parts, split the number you must."
 };
 
-const defaultState=()=>({name:'', emoji:'🧑‍🚀', score:0, streak:0, best:0, level:2, correctTotal:0, unlocked:[], power:0, mastery:{}, manual:false});
+const defaultState=()=>({name:'', emoji:'🧑‍🚀', score:0, streak:0, best:0, level:2, correctTotal:0, unlocked:[], power:0, mastery:{}, manual:false, clevel:0});
 const AVATARS=["🧑‍🚀","👩‍🚀","🤖","👽","🦸","🦹","🐱","🐶","🦊","🐼","🐵","🦁","🐯","🐰"];
 const STORE_KEY='gmc_v2';
 let DB={active:null, players:{}};
@@ -866,20 +926,22 @@ function renderBelt(){
   const row=$('beltRow'); if(!row) return;
   row.innerHTML='';
   const label=document.createElement('span'); label.className='bl';
+  const lv=curLevel(), items=curItems(), li=curLevelIdx();
   if(S.unlocked.length===0){
-    label.textContent='🎒 Gear: answer questions to earn droids, sabers & powers!';
+    label.textContent=`${lv.icon} Level ${li+1} — ${lv.name}: answer questions to collect!`;
     row.appendChild(label);
   } else {
-    label.textContent=`🎒 ${S.unlocked.length}/${rankIndex()>=GM_RANK?ALL_COLLECT.length:BASE_COUNT}:`;
+    const tot = li===0 ? (rankIndex()>=GM_RANK?items.length:BASE_COUNT) : items.length;
+    label.textContent=`${lv.icon} Lv${li+1} · ${S.unlocked.length}/${tot}:`;
     row.appendChild(label);
     S.unlocked.forEach(i=>{
-      const it=ALL_COLLECT[i]; if(!it) return;
+      const it=items[i]; if(!it) return;
       const s=document.createElement('span'); s.className='bi'; s.textContent=it.e; s.title=it.label;
       row.appendChild(s);
     });
   }
 }
-$('beltRow').onclick=()=>{ Sound.tap(); renderCollection(); };
+$('beltRow').onclick=()=>{ Sound.tap(); viewLevel=null; renderCollection(); };
 
 function updateHUD(){
   $('scoreN').textContent=S.score;
@@ -1058,33 +1120,72 @@ function maybeReward(){
   const shouldUnlock = S.power>=100 || (S.correctTotal>0 && S.correctTotal%5===0);
   if(!shouldUnlock) return;
   S.power=0;
-  // Legend Powers only become winnable once you are a Grand Master
+  const items=curItems();
+  // Legend Powers (level 1 only) become winnable once you are a Grand Master
   const canLegend = rankIndex()>=GM_RANK;
-  const locked=ALL_COLLECT.map((_,i)=>i)
+  const locked=items.map((_,i)=>i)
     .filter(i=>!S.unlocked.includes(i))
-    .filter(i=>canLegend || !ALL_COLLECT[i].legend);
-  if(locked.length===0) return; // all collected
-  // once a Grand Master, finish the base set first, then the legends
-  const baseLeft=locked.filter(i=>!ALL_COLLECT[i].legend);
+    .filter(i=>canLegend || !items[i].legend);
+  if(locked.length===0) return; // everything in this level collected
+  // finish the base set first, then the legends
+  const baseLeft=locked.filter(i=>!items[i].legend);
   const idx=pick(baseLeft.length? baseLeft : locked); S.unlocked.push(idx);
-  const item=ALL_COLLECT[idx];
+  const item=items[idx];
   save();
   Sound.reward();
   $('rewardEmoji').textContent=item.e;
   const isBlade=item.label.includes("Lightsaber");
+  const onL1=curLevelIdx()===0;
+  const left=items.length-S.unlocked.length;
   $('rewardTitle').textContent = item.legend?"🌟 LEGEND Power: "+item.label+"!" :
+     !onL1? curLevel().icon+" "+item.label+" collected!" :
      item.label==="Droid"?"New Droid unlocked!" : isBlade?"New "+item.label+"!" : "New Power: "+item.label+"!";
   $('rewardText').textContent = item.legend?"A power known only to the greatest Jedi in history. "+item.e:
+     !onL1? (left>0? "Added to your "+curLevel().name+" collection. Only "+left+" more to finish Level "+(curLevelIdx()+1)+"!"
+                   : "That completes the whole "+curLevel().name+" collection!"):
      item.label==="Droid"?"A loyal droid joins your crew.":
      isBlade?"Ignite it! "+item.e+"  Your training grows stronger.":
      "The Force grows in you! "+item.e;
   if(isBlade) Sound.laser();
   Voice.speak(item.legend? "Hmmm! A Legend Power, this is. "+item.label+", now yours it becomes. Few Jedi, this honour know."
-                         : "Unlocked "+item.label+", you have. Treasure it, you will. Hmmm.");
+                         : "Collected "+item.label+", you have. Treasure it, you will. Hmmm.");
   $('reward').classList.add('show');
   burstConfetti(40);
 }
-$('rewardBtn').onclick=()=>{ $('reward').classList.remove('show'); if(!maybeAutoBreak()) render(); };
+$('rewardBtn').onclick=()=>{
+  $('reward').classList.remove('show');
+  if(S.unlocked.length>=curItems().length){ showLevelUp(); return; }  // collection complete → LEVEL UP
+  if(!maybeAutoBreak()) render();
+};
+
+/* ---------- LEVEL UP ---------- */
+function showLevelUp(){
+  const cl=curLevelIdx();
+  const final=cl>=LEVELS.length-1;
+  Sound.reward(); burstConfetti(60);
+  if(final){
+    $('lvlEmoji').textContent="🏆";
+    $('lvlTitle').textContent="ALL 10 LEVELS COMPLETE!";
+    $('lvlText').textContent="Every collection in the galaxy is yours. The greatest collector the Jedi have ever known!";
+    $('lvlBtn').textContent="Keep training →";
+    Voice.speak("Hmmm! Every collection, complete it is. The greatest collector in the galaxy, you are! Proud of you, Yoda is.");
+  } else {
+    const nxt=LEVELS[cl+1];
+    $('lvlEmoji').textContent=nxt.icon;
+    $('lvlTitle').textContent="LEVEL "+(cl+2)+" UNLOCKED!";
+    $('lvlText').textContent="You collected everything in "+LEVELS[cl].name+"! Next: "+nxt.name+" — "+nxt.blurb+".";
+    $('lvlBtn').textContent="✦ Start Level "+(cl+2);
+    Voice.speak("Level up! Finished this collection, you have. Level "+(cl+2)+", "+nxt.name+", now begins. Hmmm, exciting this is!");
+  }
+  $('levelUp').classList.add('show');
+}
+$('lvlBtn').onclick=()=>{
+  Sound.tap();
+  const cl=curLevelIdx();
+  if(cl<LEVELS.length-1 && S.unlocked.length>=curItems().length){ S.clevel=cl+1; S.unlocked=[]; save(); }
+  $('levelUp').classList.remove('show');
+  updateHUD(); render();
+};
 
 /* ---------- confetti ---------- */
 function burstConfetti(n){
@@ -1101,14 +1202,29 @@ function burstConfetti(n){
 
 /* ---------- collection screen ---------- */
 function renderCollection(){
-  const grid=$('collectGrid'); grid.innerHTML="";
+  const cl=curLevelIdx();
+  if(viewLevel===null || viewLevel>cl) viewLevel=cl;
+  // level badges
+  const row=$('levelRow'); row.innerHTML='';
+  LEVELS.forEach((lv,i)=>{
+    const b=document.createElement('button');
+    const state = i<cl?'done' : i===cl?'cur' : 'lock';
+    b.className='lvlBadge '+state+(i===viewLevel?' sel':'');
+    b.innerHTML=`${state==='lock'?'🔒':lv.icon}<small>${i+1}</small>`;
+    b.title = state==='lock' ? 'Locked — finish the earlier levels first!' : `Level ${i+1}: ${lv.name}`;
+    if(state!=='lock') b.onclick=()=>{ Sound.tap(); viewLevel=i; renderCollection(); };
+    row.appendChild(b);
+  });
+  // grid for the viewed level (past levels were fully collected)
+  const lv=LEVELS[viewLevel], items=lv.items, isCur=viewLevel===cl;
   const gm=rankIndex()>=GM_RANK;
-  ALL_COLLECT.forEach((item,i)=>{
-    const has=S.unlocked.includes(i);
-    if(item.legend && i===BASE_COUNT){
+  const grid=$('collectGrid'); grid.innerHTML="";
+  items.forEach((item,i)=>{
+    const has = !isCur || S.unlocked.includes(i);
+    if(viewLevel===0 && item.legend && i===BASE_COUNT){
       const h=document.createElement('div');
       h.style.cssText="grid-column:1/-1;font-weight:800;color:var(--gold);font-size:15px;margin-top:6px";
-      h.textContent = gm ? "🌟 Legend Powers — for Grand Masters and beyond" : "🌟 Legend Powers — reach Grand Master to unlock these";
+      h.textContent = (gm||!isCur) ? "🌟 Legend Powers — for Grand Masters and beyond" : "🌟 Legend Powers — reach Grand Master to unlock these";
       grid.appendChild(h);
     }
     const d=document.createElement('div');
@@ -1117,7 +1233,9 @@ function renderCollection(){
     d.innerHTML=`${has?item.e:(item.legend&&!gm?"🔒":"❔")}<small>${has?item.label:(item.legend&&!gm?"Grand Master+":"locked")}</small>`;
     grid.appendChild(d);
   });
-  $('collectSummary').innerHTML=`Collected <b>${S.unlocked.length}</b> of ${ALL_COLLECT.length} • Best streak 🔥 <b>${S.best}</b> • Rank: <b>${rankLabel()}</b>`;
+  const got=isCur?S.unlocked.length:items.length;
+  $('collectSummary').innerHTML=`${lv.icon} <b>Level ${viewLevel+1}: ${lv.name}</b> — ${lv.blurb}<br>`+
+    `Collected <b>${got}</b> of ${items.length}${viewLevel<cl?" ✓ complete":""} • Best streak 🔥 <b>${S.best}</b> • Rank: <b>${rankLabel()}</b>`;
   show('collectScreen');
 }
 
@@ -1188,7 +1306,7 @@ $('beginBtn').onclick=()=>{ Sound.laser(); goToProfiles(); };
 $('createGo').onclick=()=>{ const n=($('newName').value||'').trim()||'Padawan'; Sound.correct(); createPlayer(n,pendingEmoji); updateHUD(); goTitle(); };
 $('createCancel').onclick=()=>{ $('createPanel').style.display='none'; };
 $('startBtn').onclick=startGame;
-$('collectBtn').onclick=()=>{ inGame=false; renderCollection(); };
+$('collectBtn').onclick=()=>{ inGame=false; viewLevel=null; renderCollection(); };
 $('parentBtn').onclick=renderParent;
 $('parentBack').onclick=()=>show('titleScreen');
 $('backBtn').onclick=()=>{
