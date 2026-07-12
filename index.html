@@ -1041,7 +1041,7 @@ function answer(btn, val){
     }
     maybeReward();
     setTimeout(()=>{
-      if($('reward').classList.contains('show') || $('breakScreen').classList.contains('show')) return;
+      if($('reward').classList.contains('show') || $('breakScreen').classList.contains('show') || $('levelUp').classList.contains('show')) return;
       if(maybeAutoBreak()) return;
       render();
     }, 850);
@@ -1126,7 +1126,7 @@ function maybeReward(){
   const locked=items.map((_,i)=>i)
     .filter(i=>!S.unlocked.includes(i))
     .filter(i=>canLegend || !items[i].legend);
-  if(locked.length===0) return; // everything in this level collected
+  if(locked.length===0){ if(S.unlocked.length>=curItems().length) showLevelUp(); return; } // set complete -> LEVEL UP
   // finish the base set first, then the legends
   const baseLeft=locked.filter(i=>!items[i].legend);
   const idx=pick(baseLeft.length? baseLeft : locked); S.unlocked.push(idx);
