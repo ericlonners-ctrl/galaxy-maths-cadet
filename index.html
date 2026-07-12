@@ -1019,7 +1019,7 @@ function answer(btn, val){
     btn.classList.add('correct'); Sound.correct(); Sound.laser();
     const prevRank=rankIndex();
     S.score+=10 + S.streak*2; S.streak++; S.best=Math.max(S.best,S.streak);
-    S.correctTotal++; S.power=Math.min(100,S.power+18);
+    S.correctTotal++; S.power=Math.min(100,S.power+34);
     adjust(true);
     $('feedback').style.color='var(--neon2)';
     $('feedback').textContent=pick(["Brilliant! 🚀","Direct hit! 🎯","Star pilot! ⭐","Yes! 💥","Amazing! 🌟"]);
@@ -1116,8 +1116,8 @@ $('breakHome').onclick=()=>{ Sound.tap(); closeBreak(true); };
 
 /* ---------- rewards ---------- */
 function maybeReward(){
-  // Unlock a new collectible every time power bar fills, or every 5 correct.
-  const shouldUnlock = S.power>=100 || (S.correctTotal>0 && S.correctTotal%5===0);
+  // Unlock a new collectible every time power bar fills, or every 3 correct.
+  const shouldUnlock = S.power>=100 || (S.correctTotal>0 && S.correctTotal%3===0);
   if(!shouldUnlock) return;
   S.power=0;
   const items=curItems();
