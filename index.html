@@ -584,7 +584,7 @@ const BASE_COUNT=ALL_COLLECT.filter(x=>!x.legend).length;
 
 /* ---------- COLLECTION LEVELS ----------
    Finish an entire collection and a new LEVEL begins, with a brand
-   new type of object to hunt for. 10 levels in all. */
+   new type of object to hunt for. 20 levels in all. */
 const mkItems=a=>a.map(s=>({e:s.split(' ')[0], label:s.split(' ').slice(1).join(' ')}));
 const LEVELS=[
   {name:"Jedi Training",     icon:"⚔️", blurb:"Droids, lightsabers and Jedi powers", items:ALL_COLLECT},
@@ -605,7 +605,28 @@ const LEVELS=[
   {name:"Galactic Wonders",  icon:"🌌", blurb:"Discover the strangest things in space", items:mkItems(
     ["🌌 Nebula","🌀 Spiral Galaxy","💥 Supernova","🕳️ Wormhole","🧲 Magnetar","❄️ Ice Comet","🔥 Solar Flare","🪐 Gas Giant","🌈 Space Aurora","⚡ Pulsar"])},
   {name:"Republic Treasures",icon:"🏆", blurb:"The lost treasures of the Old Republic", items:mkItems(
-    ["👑 Crown","🗝️ Ancient Key","📜 Jedi Scroll","🏺 Old Relic","🧿 Force Amulet","⚱️ Holocron","🔱 Trident","🛕 Temple Idol","💠 Kyber Crystal","🏆 Golden Trophy"])}
+    ["👑 Crown","🗝️ Ancient Key","📜 Jedi Scroll","🏺 Old Relic","🧿 Force Amulet","⚱️ Holocron","🔱 Trident","🛕 Temple Idol","💠 Kyber Crystal","🏆 Golden Trophy"])},
+  // ── Levels 11–20 ──
+  {name:"Droid Workshop",    icon:"🔧", blurb:"Gather the parts and build your own droid", items:mkItems(
+    ["🔧 Wrench","⚙️ Cog","🔩 Bolt","🔋 Battery","💡 Sensor","🦿 Leg Unit","🦾 Arm Unit","📟 Circuit","📡 Antenna","🤖 Astromech"])},
+  {name:"Podracer Garage",   icon:"🏎️", blurb:"Build a super-fast podracer, part by part", items:mkItems(
+    ["🛞 Turbo Wheel","🔥 Thruster","🪛 Spanner","⛽ Fuel Cell","💺 Cockpit","🎛️ Dashboard","🧯 Coolant","🚦 Start Light","🏁 Race Flag","🏆 Race Cup"])},
+  {name:"Space Weather",     icon:"🌦️", blurb:"Spot every kind of weather in deep space", items:mkItems(
+    ["☄️ Meteor Shower","🌞 Solar Wind","⚡ Ion Storm","🌫️ Space Fog","❄️ Frost Cloud","💥 Plasma Burst","🌈 Aurora","💨 Cosmic Gust","🌀 Vortex","🌪️ Star Cyclone"])},
+  {name:"Galactic Zoo",      icon:"🦖", blurb:"Befriend amazing creatures from every world", items:mkItems(
+    ["🦖 Space Rex","🦕 Long Neck","🐊 Star Croc","🦣 Mammoth","🦥 Space Sloth","🦩 Nebula Bird","🦚 Cosmic Peacock","🐙 Void Octopus","🐋 Star Whale","🦄 Galaxy Unicorn"])},
+  {name:"Space Carnival",    icon:"🎡", blurb:"Build the greatest carnival in the stars", items:mkItems(
+    ["🎡 Ferris Wheel","🎢 Rocket Coaster","🎠 Star Carousel","🎪 Big Top","🎯 Ring Toss","🎈 Nova Balloon","🍿 Popcorn","🎆 Fireworks","🎟️ Ticket","🏅 Prize Medal"])},
+  {name:"Cosmic Music",      icon:"🎵", blurb:"Collect instruments for a galactic band", items:mkItems(
+    ["🎵 Star Note","🎸 Space Guitar","🥁 Comet Drum","🎺 Nova Trumpet","🎻 Galaxy Violin","🎹 Nebula Keys","🎤 Mic","🔔 Chime","📻 Radio","🎶 Anthem"])},
+  {name:"Galaxy Games",      icon:"🏅", blurb:"Win every sport in the Zero-G Olympics", items:mkItems(
+    ["⚽ Zero-G Ball","🏀 Moon Hoops","🏈 Star Bowl","🎾 Comet Tennis","🏓 Ping Pong","🥅 Goal","🛹 Sky Board","🏂 Astro Board","🥇 Gold Medal","🏆 Champions Cup"])},
+  {name:"Cosmic Garden",     icon:"🌻", blurb:"Grow a beautiful garden on a new world", items:mkItems(
+    ["🌱 Sprout","🌻 Sun Flower","🌵 Space Cactus","🍄 Glow Shroom","🌸 Star Blossom","🌾 Moon Wheat","🪷 Nebula Lotus","🌴 Palm Tree","🍀 Lucky Clover","🌳 World Tree"])},
+  {name:"Time Travellers",   icon:"⏳", blurb:"Collect relics from across all of time", items:mkItems(
+    ["⏳ Hourglass","⏰ Alarm Clock","🕰️ Old Clock","📅 Star Calendar","🔮 Future Orb","🗿 Ancient Statue","🦴 Fossil","🗺️ Old Map","🧭 Compass","🌀 Time Portal"])},
+  {name:"Guardians of the Core",icon:"🌟", blurb:"The final, greatest treasures of the galaxy", items:mkItems(
+    ["🌟 Core Star","🛡️ Guardian Shield","⚔️ Master Blade","👑 Cosmic Crown","💎 Heart Gem","🔮 Force Orb","🕊️ Spirit Wing","🐉 Star Dragon","🎖️ Galaxy Medal","🏆 Ultimate Trophy"])}
 ];
 const curLevelIdx=()=>Math.min(S.clevel||0, LEVELS.length-1);
 const curLevel=()=>LEVELS[curLevelIdx()];
@@ -649,7 +670,8 @@ const TIPS={
   compare:"Look at the tens digit first. If the tens match, compare the ones.",
   shape:"Count each straight side slowly with your finger. A circle has no straight sides at all.",
   muldiv:"3 × 4 means 3 groups of 4 — try picturing dots in groups. Dividing shares into equal groups.",
-  fraction:"½ of a number means split it into 2 equal parts. ¼ means split it into 4 equal parts."
+  fraction:"½ of a number means split it into 2 equal parts. ¼ means split it into 4 equal parts.",
+  round:"Rounding to the nearest 10? Look at the ones digit: 5 or more rounds up, 4 or less rounds down."
 };
 const YODA_TIPS={
   addsub:"From the bigger number, count on, you should.",
@@ -659,7 +681,8 @@ const YODA_TIPS={
   compare:"At the tens digit first, look you must.",
   shape:"Count the straight sides slowly, you should.",
   muldiv:"Groups of numbers, times means.",
-  fraction:"Into equal parts, split the number you must."
+  fraction:"Into equal parts, split the number you must.",
+  round:"To the nearest ten, the ones digit guides you."
 };
 
 const defaultState=()=>({name:'', emoji:'🧑‍🚀', score:0, streak:0, best:0, level:2, correctTotal:0, unlocked:[], power:0, mastery:{}, manual:false, clevel:0});
@@ -698,11 +721,14 @@ const pick=arr=>arr[rnd(0,arr.length-1)];
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
 
 /* ---------- ADAPTIVE DIFFICULTY ----------
-   level 1..6 scales number ranges. Correct answers push level up,
-   mistakes ease it down, so it always meets him where he is. */
+   level 1..9 scales number ranges AND unlocks harder skills (Year 1 → Year 5).
+   Correct answers push level up, mistakes ease it down, so it always meets
+   him where he is. New maths (bigger times tables, 2-digit multiply, non-unit
+   fractions, rounding, 4-digit sums) comes online as he climbs. */
+const MAX_LEVEL=9;
 function adjust(correct){
   if(S.manual) return;   // parent/child override — don't auto-adjust
-  if(correct){ S.level=Math.min(6, S.level + (S.streak>=3?0.5:0.34)); }
+  if(correct){ S.level=Math.min(MAX_LEVEL, S.level + (S.streak>=3?0.5:0.34)); }
   else { S.level=Math.max(1, S.level-0.7); }
 }
 const L=()=>Math.round(S.level); // integer difficulty tier
@@ -719,7 +745,7 @@ function opts(correct, near, count=4){
 
 function genAddSub(){
   const lvl=L();
-  const max = lvl<=1?10 : lvl<=2?15 : lvl<=3?20 : lvl<=4?50 : lvl<=5?100 : 999;  // Year 3 = 3-digit
+  const max = lvl<=1?10 : lvl<=2?15 : lvl<=3?20 : lvl<=4?50 : lvl<=5?100 : lvl<=6?999 : lvl<=7?2000 : 9999;  // Year 3 = 3-digit, Year 4–5 = up to 4-digit
   const sub = Math.random()<0.5;
   let a,b,ans,text,say;
   if(sub){ a=rnd(2,max); b=rnd(1,a); ans=a-b; text=`${a} − ${b} = ?`; say=`What is ${a}, minus ${b}?`; }
@@ -744,6 +770,7 @@ function genCount(){
   let steps=[2,5,10];
   if(lvl>=3) steps=[2,3,4,5,10];
   if(lvl>=5) steps=[4,8,50,100,3];   // Year 3 steps
+  if(lvl>=7) steps=[6,7,9,25,1000];  // Year 4/5 steps
   const step=pick(steps);
   const start=step*rnd(0,4);
   const seq=[start,start+step,start+step*2,start+step*3];
@@ -758,13 +785,15 @@ function genCount(){
 }
 
 function genMoreLess(){
-  const lvl=L(); const max=lvl<=2?20:lvl<=4?50:100;
+  const lvl=L(); const max=lvl<=2?20:lvl<=4?50:lvl<=6?100:lvl<=7?1000:10000;
   const n=rnd(1,max);
   const kinds=[
     {t:"1 more than",f:x=>x+1},{t:"1 less than",f:x=>x-1},
-    {t:"10 more than",f:x=>x+10},{t:"10 less than",f:x=>Math.max(0,x-10)}
+    {t:"10 more than",f:x=>x+10},{t:"10 less than",f:x=>Math.max(0,x-10)},
+    {t:"100 more than",f:x=>x+100},{t:"100 less than",f:x=>Math.max(0,x-100)},
+    {t:"1000 more than",f:x=>x+1000},{t:"1000 less than",f:x=>Math.max(0,x-1000)}
   ];
-  const k=pick(lvl<=2?kinds.slice(0,2):kinds);
+  const k=pick(lvl<=2?kinds.slice(0,2): lvl<=6?kinds.slice(0,4): lvl<=7?kinds.slice(0,6): kinds);
   const ans=k.f(n);
   const near=[ans+1,ans-1,ans+10,ans-10,ans+2].filter(x=>x>=0);
   return {prompt:"Jump along the number line 🛰️", q:`What is ${k.t} ${n}?`,
@@ -773,7 +802,7 @@ function genMoreLess(){
 }
 
 function genCompare(){
-  const lvl=L(); const max=lvl<=2?20:lvl<=4?50:100;
+  const lvl=L(); const max=lvl<=2?20:lvl<=4?50:lvl<=6?100:lvl<=7?1000:10000;
   let a=rnd(0,max), b=rnd(0,max); while(b===a) b=rnd(0,max);
   const big=Math.random()<0.5;
   const ans= big? Math.max(a,b): Math.min(a,b);
@@ -806,10 +835,18 @@ function genShape(){
   }
 }
 
-// Year 3: times tables & division
+// Year 3+: times tables & division (Year 4/5 adds full tables & 2-digit × 1-digit)
 function genMulDiv(){
   const lvl=L();
-  const tables = lvl>=5 ? [2,3,4,5,8,10] : [2,5,10];   // Year 3 adds 3, 4, 8
+  const tables = lvl>=7 ? [2,3,4,5,6,7,8,9,10,11,12] : lvl>=5 ? [2,3,4,5,8,10] : [2,5,10];
+  // Year 4/5: 2-digit × 1-digit multiplication
+  if(lvl>=8 && Math.random()<0.45){
+    const a=rnd(11,25), b=rnd(2,9), ans=a*b;
+    const near=[ans+b,ans-b,ans+a,ans-a,ans+10,ans-10].filter(n=>n>=0);
+    return {prompt:"Big multiply ✖️", q:`${a} × ${b} = ?`,
+            say:`What is ${a}, times ${b}?`,
+            answers:opts(ans,near), correct:ans, skill:"muldiv"};
+  }
   const a=pick(tables), b=rnd(2,12);
   if(Math.random()<0.4){
     const prod=a*b, ans=b;
@@ -824,8 +861,17 @@ function genMulDiv(){
           say:`What is ${a}, times ${b}?`,
           answers:opts(ans,near), correct:ans, skill:"muldiv"};
 }
-// Year 3: fractions of an amount
+// Year 3+: fractions of an amount (Year 4/5 adds non-unit fractions like ¾ of 20)
 function genFraction(){
+  const lvl=L();
+  if(lvl>=7 && Math.random()<0.5){
+    const denom=pick([3,4,5]), numer=rnd(2,denom-1);
+    const part=rnd(2,8), total=denom*part, ans=numer*part;
+    const near=[ans+part,ans-part,total,part,ans+1,ans-1].filter(n=>n>=0);
+    return {prompt:"Fractions of an amount 🍕", q:`${numer}/${denom} of ${total} = ?`,
+            say:`What is ${numer} out of ${denom}, of ${total}?`,
+            answers:opts(ans,near), correct:ans, skill:"fraction"};
+  }
   const fr=pick([[2,"½","one half"],[3,"⅓","one third"],[4,"¼","one quarter"],[5,"⅕","one fifth"]]);
   const denom=fr[0], mult=rnd(1,6), total=denom*mult, ans=mult;
   const near=[ans+1,ans-1,ans+2,total,denom].filter(n=>n>=0);
@@ -833,12 +879,25 @@ function genFraction(){
           say:`What is ${fr[2]}, of ${total}?`,
           answers:opts(ans,near), correct:ans, skill:"fraction"};
 }
+// Year 4/5: rounding to the nearest 10 / 100 / 1000
+function genRound(){
+  const lvl=L();
+  const to = lvl>=8 ? pick([10,100,1000]) : pick([10,100]);
+  const n = rnd(Math.floor(to/2)+1, to*30);
+  const ans = Math.round(n/to)*to;
+  const near=[ans+to, ans-to, Math.floor(n/to)*to, Math.ceil(n/to)*to, n].filter(x=>x>=0);
+  return {prompt:"Rounding 🎯", q:`Round ${n} to the nearest ${to}`,
+          say:`Round ${n} to the nearest ${to}.`,
+          answers:opts(ans,near), correct:ans, skill:"round"};
+}
 
 function pickGenerator(){
   const lvl=L();
   const pool=[genAddSub,genAddSub,genBonds,genCount,genMoreLess,genCompare,genShape];
-  if(lvl>=4) pool.push(genMulDiv,genMulDiv);                        // multiplication enters
-  if(lvl>=5) pool.push(genMulDiv,genFraction,genFraction,genAddSub); // Year 3 emphasis
+  if(lvl>=4) pool.push(genMulDiv,genMulDiv);                          // multiplication enters
+  if(lvl>=5) pool.push(genMulDiv,genFraction,genFraction,genAddSub);  // Year 3 emphasis
+  if(lvl>=7) pool.push(genMulDiv,genMulDiv,genFraction,genRound,genRound,genCount,genMoreLess); // Year 4: harder emphasis
+  if(lvl>=8) pool.push(genMulDiv,genRound,genFraction,genAddSub);     // Year 5: keep stretching
   return pick(pool);
 }
 function nextQuestion(){
@@ -956,7 +1015,7 @@ function updateHUD(){
   updateDiffUI();
 }
 
-const DIFF_NAMES=["","Year 1","Year 1+","Year 2","Year 2+","Year 3","Year 3 ★"];  // Year 3 ★ = Expert
+const DIFF_NAMES=["","Year 1","Year 1+","Year 2","Year 2+","Year 3","Year 3 ★","Year 4","Year 4+","Year 5"];
 function updateDiffUI(){
   const el=$('diffLabel'); if(!el) return;
   el.textContent = S.manual ? DIFF_NAMES[L()] : "Auto";
@@ -964,7 +1023,7 @@ function updateDiffUI(){
 }
 function setDiff(delta){
   Sound.tap(); S.manual=true;
-  S.level=Math.max(1, Math.min(6, Math.round(S.level)+delta));
+  S.level=Math.max(1, Math.min(MAX_LEVEL, Math.round(S.level)+delta));
   save(); updateDiffUI();
 }
 
@@ -1165,7 +1224,7 @@ function showLevelUp(){
   Sound.reward(); burstConfetti(60);
   if(final){
     $('lvlEmoji').textContent="🏆";
-    $('lvlTitle').textContent="ALL 10 LEVELS COMPLETE!";
+    $('lvlTitle').textContent="ALL "+LEVELS.length+" LEVELS COMPLETE!";
     $('lvlText').textContent="Every collection in the galaxy is yours. The greatest collector the Jedi have ever known!";
     $('lvlBtn').textContent="Keep training →";
     Voice.speak("Hmmm! Every collection, complete it is. The greatest collector in the galaxy, you are! Proud of you, Yoda is.");
@@ -1242,9 +1301,9 @@ function renderCollection(){
 /* ---------- parent view ---------- */
 const SKILL_NAMES={addsub:"➕ Add & subtract", bonds:"🔗 Number bonds", count:"🔢 Counting in steps",
   moreless:"🛰️ More / less", compare:"🪐 Comparing numbers", shape:"📐 Shapes",
-  muldiv:"✖️ Times tables & ÷", fraction:"🍕 Fractions"};
+  muldiv:"✖️ Times tables & ÷", fraction:"🍕 Fractions", round:"🎯 Rounding"};
 function renderParent(){
-  const order=["addsub","bonds","count","moreless","compare","shape","muldiv","fraction"];
+  const order=["addsub","bonds","count","moreless","compare","shape","muldiv","fraction","round"];
   const grid=$('parentGrid'); grid.innerHTML="";
   let totC=0, totT=0, weakest=null;
   order.forEach(sk=>{
